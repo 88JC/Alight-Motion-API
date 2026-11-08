@@ -1,0 +1,26 @@
+{
+  "name": "alight-motion-discord-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot with Slash Commands & Modal Form for Alight Motion API",
+  "author": "88JC",
+  "license": "MIT",
+  "main": "bot.ts",
+  "scripts": {
+    "start": "bun run bot.ts",
+    "dev": "npx tsx bot.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "alight-motion",
+    "discord-bot",
+    "discordjs"
+  ],
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

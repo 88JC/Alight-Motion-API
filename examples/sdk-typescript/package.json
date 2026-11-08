@@ -1,0 +1,22 @@
+{
+  "name": "alight-motion-sdk-ts",
+  "version": "1.0.0",
+  "description": "TypeScript & JavaScript Client SDK for Alight Motion API",
+  "author": "88JC",
+  "license": "MIT",
+  "main": "client.ts",
+  "types": "client.ts",
+  "scripts": {
+    "start": "bun run example.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "alight-motion",
+    "sdk",
+    "typescript"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

@@ -2,13 +2,12 @@ import requests
 from typing import Optional, Dict, Any, List
 
 class AlightMotionAPI:
-    def __init__(self, base_url: str, api_key: str, timeout: int = 30):
+    def __init__(self, base_url: str, api_key: str = "", timeout: int = 30):
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
-        self.session.headers.update({
-            "Content-Type": "application/json",
-            "x-api-key": api_key.strip()
-        })
+        self.session.headers.update({"Content-Type": "application/json"})
+        if api_key and api_key.strip():
+            self.session.headers["x-api-key"] = api_key.strip()
         self.timeout = timeout
 
     def get_plans(self) -> List[Dict[str, str]]:

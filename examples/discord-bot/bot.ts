@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import {
   Client,
   GatewayIntentBits,
@@ -19,8 +20,8 @@ import { AlightMotionAPI } from './client';
 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || 'TOKEN_BOT';
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || 'CLIENT_ID';
-const API_URL = process.env.ALIGHT_API_URL || 'api_url';
-const API_KEY = process.env.ALIGHT_API_KEY || 'am_live_KEY';
+const API_URL = process.env.ALIGHT_API_URL || 'https://api.wky.me';
+const API_KEY = process.env.ALIGHT_API_KEY || ''; // Kosongkan atau isi 'free' jika menggunakan Free Tier publik
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const api = new AlightMotionAPI(API_URL, API_KEY);
@@ -64,15 +65,23 @@ async function handleCommand(i: ChatInputCommandInteraction) {
     const res = await api.getQuota();
     if (!res.success || !res.data) return i.editReply(`Error: ${res.error}`);
 
-    const embed = new EmbedBuilder()
-      .setColor(0xf59f0b)
-      .setTitle('Status Kuota API')
-      .addFields(
-        { name: 'User', value: `\`${res.data.name}\``, inline: true },
+    const embed = new EmbedBuilder().setColor(0xf59f0b).setTitle('Status Kuota API');
+
+    if (res.data.tier) {
+      embed.addFields(
+        { name: 'Tier', value: `\`${res.data.tier}\``, inline: true },
+        { name: 'Sisa Hari Ini', value: `\`${res.data.remaining_today} / ${res.data.daily_limit}\``, inline: true },
+        { name: 'Terpakai', value: `\`${res.data.used_today}\``, inline: true },
+        { name: 'IP', value: `\`${res.data.ip || '-'}\`` }
+      );
+    } else {
+      embed.addFields(
+        { name: 'User', value: `\`${res.data.name || 'User'}\``, inline: true },
         { name: 'Sisa Kuota', value: `\`${res.data.remaining_quota}\``, inline: true },
         { name: 'Total Upgrade', value: `\`${res.data.total_created}\``, inline: true },
         { name: 'Masa Aktif', value: `\`${res.data.expires_at || 'Lifetime'}\`` }
       );
+    }
 
     return i.editReply({ embeds: [embed] });
   }

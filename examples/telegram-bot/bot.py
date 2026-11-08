@@ -1,9 +1,13 @@
+import os
+from dotenv import load_dotenv
 import telebot
 from client import AlightMotionAPI
 
-BOT_TOKEN = "TOKEN_BOT_TELEGRAM"
-API_URL = "https://api.wky.me"
-API_KEY = "am_live_KEY_ANDA"
+load_dotenv()
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "TOKEN_BOT_TELEGRAM")
+API_URL = os.getenv("ALIGHT_API_URL", "https://api.wky.me")
+API_KEY = os.getenv("ALIGHT_API_KEY", "")  # Kosongkan atau isi 'free' jika menggunakan Free Tier
 
 bot = telebot.TeleBot(BOT_TOKEN)
 api = AlightMotionAPI(API_URL, API_KEY)
@@ -18,8 +22,22 @@ def handle_kuota(m):
     res = api.get_quota()
     if not res.get("success"):
         return bot.reply_to(m, f"Error: {res.get('error')}")
-    d = res["data"]
-    bot.reply_to(m, f"User: {d['name']}\nSisa kuota: {d['remaining_quota']}\nTotal upgrade: {d['total_created']}\nMasa aktif: {d['expires_at'] or 'Lifetime'}")
+    d = res.get("data", {})
+    if d.get("tier"):
+        text = (
+            f"Status: {d.get('tier')}\n"
+            f"Sisa hari ini: {d.get('remaining_today')} / {d.get('daily_limit')} upgrade\n"
+            f"Terpakai: {d.get('used_today')}\n"
+            f"IP: {d.get('ip')}"
+        )
+    else:
+        text = (
+            f"User: {d.get('name', 'User')}\n"
+            f"Sisa kuota: {d.get('remaining_quota')}\n"
+            f"Total upgrade: {d.get('total_created')}\n"
+            f"Masa aktif: {d.get('expires_at') or 'Lifetime'}"
+        )
+    bot.reply_to(m, text)
 
 @bot.message_handler(commands=["paket"])
 def handle_paket(m):

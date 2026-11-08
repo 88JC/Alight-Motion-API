@@ -1,21 +1,14 @@
-#!/usr/bin/env python3
-"""
-CLI Tool Alight Motion API
-Bisa langsung jalan di terminal buat cek kuota atau proses upgrade akun.
-"""
-
 import sys
 import requests
 
-DEFAULT_API_URL = "http://localhost:8787"
+DEFAULT_API_URL = "https://api.wky.me"
 
 class AlightMotionClient:
-    def __init__(self, base_url: str, api_key: str):
+    def __init__(self, base_url: str, api_key: str = ""):
         self.base_url = base_url.rstrip("/")
-        self.headers = {
-            "Content-Type": "application/json",
-            "x-api-key": api_key.strip()
-        }
+        self.headers = {"Content-Type": "application/json"}
+        if api_key.strip():
+            self.headers["x-api-key"] = api_key.strip()
 
     def get_plans(self):
         return requests.get(f"{self.base_url}/api/plans", timeout=15).json()
@@ -40,11 +33,8 @@ def main():
     print("=" * 45)
 
     api_url = input(f"Base API URL [{DEFAULT_API_URL}]: ").strip() or DEFAULT_API_URL
-    api_key = input("API Key kamu (am_live_...): ").strip()
-
-    if not api_key:
-        print("Error: API Key jangan kosong.")
-        sys.exit(1)
+    raw_api_key = input("API Key kamu (am_live_... atau Enter / ketik 'free' untuk Free Tier): ").strip()
+    api_key = "free" if raw_api_key.lower() == "free" else raw_api_key
 
     client = AlightMotionClient(api_url, api_key)
 
@@ -52,13 +42,18 @@ def main():
     print("\nCek akun...")
     me = client.get_me()
     if not me.get("success"):
-        print(f"Gagal login: {me.get('error', 'Key nggak valid')}")
+        print(f"Gagal koneksi/cek akun: {me.get('error', 'Key tidak valid')}")
         sys.exit(1)
 
     info = me.get("data", {})
-    print(f"Halo, {info.get('name', 'User')}!")
-    print(f"Sisa kuota : {info.get('remaining_quota')}")
-    print(f"Masa aktif : {info.get('expires_at') or 'Lifetime'}")
+    if info.get("tier"):
+        print(f"\nStatus     : {info.get('tier')}")
+        print(f"Sisa hari  : {info.get('remaining_today')} / {info.get('daily_limit')} upgrade")
+        print(f"IP         : {info.get('ip')}")
+    else:
+        print(f"Halo, {info.get('name', 'User')}!")
+        print(f"Sisa kuota : {info.get('remaining_quota')}")
+        print(f"Masa aktif : {info.get('expires_at') or 'Lifetime'}")
 
     while True:
         print("\nPilih aksi:")
@@ -71,10 +66,17 @@ def main():
 
         if pilihan == "1":
             cur = client.get_me().get("data", {})
-            print(f"\nAkun       : {cur.get('name')}")
-            print(f"Sisa kuota : {cur.get('remaining_quota')}")
-            print(f"Total jadi : {cur.get('total_created')} akun")
-            print(f"Masa aktif : {cur.get('expires_at') or 'Lifetime'}")
+            if cur.get("tier"):
+                print(f"\nStatus     : {cur.get('tier')}")
+                print(f"Sisa hari  : {cur.get('remaining_today')} / {cur.get('daily_limit')} upgrade")
+                print(f"Terpakai   : {cur.get('used_today')}")
+                print(f"IP         : {cur.get('ip')}")
+                print(f"Catatan    : {cur.get('note', '-')}")
+            else:
+                print(f"\nAkun       : {cur.get('name')}")
+                print(f"Sisa kuota : {cur.get('remaining_quota')}")
+                print(f"Total jadi : {cur.get('total_created')} akun")
+                print(f"Masa aktif : {cur.get('expires_at') or 'Lifetime'}")
 
         elif pilihan == "2":
             plans = client.get_plans().get("data", [])

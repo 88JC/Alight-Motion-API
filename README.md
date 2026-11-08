@@ -14,8 +14,8 @@ Repositori resmi berisi panduan integrasi, modul SDK (Python & TypeScript), sert
 
 ## Tingkat Akses (Tiers)
 
-- **Free Tier (Publik)**:
-  Bisa langsung digunakan tanpa API key pribadi (cukup kirim header `x-api-key: free` atau kosongkan header). Dibatasi maksimal **10 kali upgrade per hari per users**.
+- **Free Tier (Publik / Gratis)**:
+  Bisa langsung digunakan tanpa API key pribadi. Di CLI atau SDK, **cukup dikosongkan (tekan Enter) atau ketik `free`**. Di header HTTP cukup kirim `x-api-key: free` atau kosongkan header `x-api-key`. Dibatasi maksimal **10 kali upgrade per hari per user**.
 - **Private Tier**:
   Menggunakan API key pribadi (`am_live_...`). Kuota mandiri dari admin, dan **bebas dari cooldown/rate-limit email spam**.
 
@@ -30,16 +30,18 @@ Repositori resmi berisi panduan integrasi, modul SDK (Python & TypeScript), sert
 
 ---
 
-## File Siap Pakai di Folder `examples/`
+## Contoh Proyek & SDK di Folder `examples/`
 
-| File | Bahasa / Runtime | Keterangan |
+Setiap folder di dalam `examples/` dirancang sebagai proyek mandiri (self-contained) lengkap dengan dependensi, konfigurasi, dan dokumentasi masing-masing:
+
+| Folder | Bahasa / Platform | Keterangan |
 | :--- | :--- | :--- |
-| **[`cli.js`](./examples/cli.js)** | Node.js (v18+) / Bun | CLI interaktif JavaScript tanpa dependensi npm (Zero dependencies). |
-| **[`interactive-cli.py`](./examples/interactive-cli.py)** | Python 3 | CLI interaktif Python untuk terminal. |
-| **[`client.ts`](./examples/client.ts)** | TypeScript / JS | Class SDK client untuk Node.js, Bun, dan bot Discord. |
-| **[`client.py`](./examples/client.py)** | Python 3 | Class SDK client untuk Python (FastAPI, Flask, bot). |
-| **[`discord_bot_example.ts`](./examples/discord_bot_example.ts)** | TypeScript (`discord.js v14`) | Bot Discord dengan Slash Commands & Modal Form input link privat. |
-| **[`telegram_bot_example.py`](./examples/telegram_bot_example.py)** | Python (`telebot`) | Bot Telegram interaktif siap jalan. |
+| **[`examples/cli-node/`](./examples/cli-node/)** | Node.js (v18+) / Bun | CLI interaktif JavaScript tanpa dependensi npm (Zero dependencies). |
+| **[`examples/cli-python/`](./examples/cli-python/)** | Python 3 | CLI interaktif Python untuk terminal. |
+| **[`examples/sdk-typescript/`](./examples/sdk-typescript/)** | TypeScript / JS | Modul SDK client lengkap dengan tipe data untuk Node.js & Bun. |
+| **[`examples/sdk-python/`](./examples/sdk-python/)** | Python 3 | Modul SDK client Python (FastAPI, Flask, bot). |
+| **[`examples/discord-bot/`](./examples/discord-bot/)** | TypeScript (`discord.js v14`) | Bot Discord lengkap dengan Slash Commands & Modal Form privat. |
+| **[`examples/telegram-bot/`](./examples/telegram-bot/)** | Python (`telebot`) | Bot Telegram interaktif siap jalan dengan wizard multi-step. |
 
 ---
 
@@ -49,14 +51,14 @@ Tersedia tool CLI terminal siap pakai tanpa perlu menulis kode integrasi manual:
 
 ### Versi Node.js / Bun:
 ```bash
-node examples/cli.js
-# atau: bun examples/cli.js
+node examples/cli-node/cli.js
+# atau: bun examples/cli-node/cli.js
 ```
 
 ### Versi Python:
 ```bash
-pip install requests
-python examples/interactive-cli.py
+pip install -r examples/cli-python/requirements.txt
+python examples/cli-python/cli.py
 ```
 
 ---
@@ -65,7 +67,7 @@ python examples/interactive-cli.py
 
 ### TypeScript:
 ```typescript
-import { AlightMotionAPI } from './examples/client';
+import { AlightMotionAPI } from './examples/sdk-typescript/client';
 
 const api = new AlightMotionAPI('https://api.wky.me', 'am_live_xxxxxxxx');
 
@@ -79,7 +81,7 @@ console.log(res.message);
 
 ### Python:
 ```python
-from examples.client import AlightMotionAPI
+from examples.sdk_python.client import AlightMotionAPI # atau salin client.py ke project Anda
 
 api = AlightMotionAPI("https://api.wky.me", "am_live_xxxxxxxx")
 

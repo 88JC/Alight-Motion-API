@@ -3,7 +3,7 @@
 const readline = require('node:readline/promises');
 const { stdin: input, stdout: output } = require('node:process');
 
-const DEFAULT_URL = 'http://localhost:8787';
+const DEFAULT_URL = 'https://api.wky.me';
 
 class AlightClient {
   constructor(baseUrl, apiKey) {
@@ -13,13 +13,17 @@ class AlightClient {
 
   async request(path, options = {}) {
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      };
+      if (this.apiKey) {
+        headers['x-api-key'] = this.apiKey;
+      }
+
       const res = await fetch(`${this.baseUrl}${path}`, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          ...options.headers,
-        },
+        headers,
       });
       return await res.json();
     } catch (err) {
@@ -67,27 +71,29 @@ async function main() {
   const rawUrl = await rl.question(`Base API URL [${DEFAULT_URL}]: `);
   const apiUrl = rawUrl.trim() || DEFAULT_URL;
 
-  const apiKey = (await rl.question('API Key kamu (am_live_...): ')).trim();
-  if (!apiKey) {
-    console.log('Error: API Key jangan kosong.');
-    rl.close();
-    return;
-  }
+  const rawApiKey = (await rl.question('API Key kamu (am_live_... atau Enter / ketik "free" untuk Free Tier): ')).trim();
+  const apiKey = rawApiKey.toLowerCase() === 'free' ? 'free' : rawApiKey;
 
   const client = new AlightClient(apiUrl, apiKey);
 
   console.log('\nCek akun...');
   const me = await client.getMe();
   if (!me.success) {
-    console.log(`Gagal login: ${me.error || 'Key nggak valid'}`);
+    console.log(`Gagal koneksi/cek akun: ${me.error || 'Key tidak valid'}`);
     rl.close();
     return;
   }
 
-  const user = me.data;
-  console.log(`Halo, ${user.name}!`);
-  console.log(`Sisa kuota : ${user.remaining_quota}`);
-  console.log(`Masa aktif : ${user.expires_at || 'Lifetime'}`);
+  const user = me.data || {};
+  if (user.tier) {
+    console.log(`\nStatus     : ${user.tier}`);
+    console.log(`Sisa hari  : ${user.remaining_today} / ${user.daily_limit} upgrade`);
+    console.log(`IP         : ${user.ip}`);
+  } else {
+    console.log(`Halo, ${user.name || 'User'}!`);
+    console.log(`Sisa kuota : ${user.remaining_quota}`);
+    console.log(`Masa aktif : ${user.expires_at || 'Lifetime'}`);
+  }
 
   while (true) {
     console.log('\nPilih aksi:');
@@ -104,11 +110,19 @@ async function main() {
         console.log(`Error: ${cur.error}`);
         continue;
       }
-      const d = cur.data;
-      console.log(`\nAkun       : ${d.name}`);
-      console.log(`Sisa kuota : ${d.remaining_quota}`);
-      console.log(`Total jadi : ${d.total_created} akun`);
-      console.log(`Masa aktif : ${d.expires_at || 'Lifetime'}`);
+      const d = cur.data || {};
+      if (d.tier) {
+        console.log(`\nStatus     : ${d.tier}`);
+        console.log(`Sisa hari  : ${d.remaining_today} / ${d.daily_limit} upgrade`);
+        console.log(`Terpakai   : ${d.used_today}`);
+        console.log(`IP         : ${d.ip}`);
+        console.log(`Catatan    : ${d.note || '-'}`);
+      } else {
+        console.log(`\nAkun       : ${d.name}`);
+        console.log(`Sisa kuota : ${d.remaining_quota}`);
+        console.log(`Total jadi : ${d.total_created} akun`);
+        console.log(`Masa aktif : ${d.expires_at || 'Lifetime'}`);
+      }
     } else if (opt === '2') {
       const plans = await client.getPlans();
       if (!plans.success) {

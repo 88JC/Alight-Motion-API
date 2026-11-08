@@ -5,11 +5,20 @@ export interface Plan {
 }
 
 export interface UserProfile {
-  name: string;
-  remaining_quota: number | string;
-  total_created: number;
-  expires_at: string;
-  created_at: string;
+  // Free Tier
+  tier?: string;
+  ip?: string;
+  daily_limit?: number;
+  used_today?: number;
+  remaining_today?: number;
+  note?: string;
+
+  // Private Tier
+  name?: string;
+  remaining_quota?: number | string;
+  total_created?: number;
+  expires_at?: string;
+  created_at?: string;
 }
 
 export interface ApiResponse<T = any> {
@@ -25,7 +34,7 @@ export class AlightMotionAPI {
   readonly apiKey: string;
   private timeout: number;
 
-  constructor(baseUrl: string, apiKey: string, timeoutMs = 30000) {
+  constructor(baseUrl: string, apiKey: string = '', timeoutMs = 30000) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
     this.apiKey = apiKey.trim();
     this.timeout = timeoutMs;
@@ -36,13 +45,17 @@ export class AlightMotionAPI {
     const timer = setTimeout(() => controller.abort(), this.timeout);
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(init.headers as Record<string, string>),
+      };
+      if (this.apiKey) {
+        headers['x-api-key'] = this.apiKey;
+      }
+
       const res = await fetch(`${this.baseUrl}${path}`, {
         ...init,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          ...init.headers,
-        },
+        headers,
         signal: controller.signal,
       });
       return (await res.json()) as ApiResponse<T>;
